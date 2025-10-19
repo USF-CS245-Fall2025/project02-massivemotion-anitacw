@@ -2,6 +2,9 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.FileInputStream;
+import java.io.FileReader;
+import java.util.Properties;
 
 public class MassiveMotion extends JPanel implements ActionListener {
 
@@ -14,9 +17,11 @@ public class MassiveMotion extends JPanel implements ActionListener {
 
     // public MassiveMotion(String propfile) {
     public MassiveMotion() {
-        // TODO: insert your code to read from configuration file here.
+        Properties p = new Properties();
+        p.load(new FileInputStream("MassiveMotion.txt"));
+        int delay = Integer.parseInt(p.getProperty("timer_delay"));
 
-        tm = new Timer(75, this); // TODO: Replace the first argument with delay with value from config file.
+        tm = new Timer(delay, this);
 
         // TODO: Consider removing the next two lines (coordinates) for random starting locations.
         x1 = 100; y1 = 50;
