@@ -10,43 +10,62 @@ public class MassiveMotion extends JPanel implements ActionListener {
 
     protected Timer tm;
 
-    // TODO: Consider removing the next two lines (coordinates for two balls)
-    protected int x1, y1;
-    protected int x2, y2;
-
     protected int bodyVelocity;
+    protected int bodySize;
+    protected double genX, genY;
+
     protected int starX, starY, starSize;
+    protected int starVX, starVY;
 
+    protected int windowWidth, windowHeight;
 
-    // public MassiveMotion(String propfile) {
+    protected int tick = 0;
+    protected List<Body> bodies;
+
+    protected static class Body{
+        int x, y, vx, vy;
+        Body(int x, int y, int vx, int vy){
+            this.x = x; this.y = y; this.vx = vx; this.vy = vy;
+        }
+    }
+
+    // public MassiveMotion(String profile) {
     public MassiveMotion() throws Exception {
         Properties p = new Properties();
         p.load(new FileInputStream("MassiveMotion.txt"));
+
         int delay = Integer.parseInt(p.getProperty("timer_delay"));
+        tm = new Timer(delay, this);
+
         bodyVelocity = Integer.parseInt(p.getProperty("body_velocity"));
+        bodySize = Integer.parseInt(p.getProperty("body_size"));
+
+        genX = Double.parseDouble(p.getProperty("gen_x"));
+        genY = Double.parseDouble(p.getProperty("gen_y"));
+
         starX = Integer.parseInt(p.getProperty("star_position_x"));
         starY = Integer.parseInt(p.getProperty("star_position_y"));
         starSize = Integer.parseInt(p.getProperty("star_size"));
+        starVX = (int)Math.round(Double.parseDouble(p.getProperty("star_velocity_x")));
+        starVX = (int)Math.round(Double.parseDouble(p.getProperty("star_velocity_y")));
 
-        tm = new Timer(delay, this);
+        windowWidth = Integer.parseInt(p.getProperty("window_size_x"));
+        windowHeight = Integer.parseInt(p.getProperty("window_size_y"));
 
-        // TODO: Consider removing the next two lines (coordinates) for random starting locations.
-        x1 = 100; y1 = 50;
-        x2 = 200; y2 = 400;
+        //String whichList = p.getProperty("list", "arraylist");
     }
 
     public void paintComponent(Graphics g) {
         super.paintComponent(g); // Probably best you leave this as is.
 
-        // TODO: Paint each ball. Here's how to paint two balls, one after the other:
-        g.setColor(Color.BLUE);
-        g.fillOval(x1, y1, 20, 20);
-
-        g.setColor(Color.RED);
-        g.fillOval(x2, y2, 20, 20);
-
         g.setColor(Color.YELLOW);
         g.fillOval(starX- starSize/2, starY - starSize/2, starSize, starSize);
+
+        g.setColor(Color.BLACK);
+        for(int i = 0; i < bodies.size(); i++){
+            Body b = bodies.get(i);
+            g.fillOval(b.x, b.y, bodySize, bodySize);
+        }
 
         // Recommend you leave the next line as is
         tm.start();
@@ -55,13 +74,36 @@ public class MassiveMotion extends JPanel implements ActionListener {
 
     @Override
     public void actionPerformed(ActionEvent actionEvent) {
-        x1 += bodyVelocity;
-        x2 -= bodyVelocity;
-        // These two "if" statements keep the balls on the screen in case they go off one side.
-        if (x1 > 640)
-            x1 = 0;
-        if (x2 < 0)
-            x2 = 640;
+        int w = windowWidth;
+        int h = windowHeight;
+
+        int y; int vy;
+
+        if(tick % 2 ==0){
+            y = 0;
+            vy = bodyVelocity;
+        }else{
+            y = h - bodySize;
+            vy = -bodyVelocity;
+        }
+
+        int x = (bodies.size() * 20) % (w -bodySize);
+        bodies.add(new Body(x, y, 0, vy));
+        tick++;
+
+        for (int i = 0; i < bodies.size(); i++){
+            Body b = bodies.get(i);
+            b.y = b.y + b.vy;
+
+            if (b.y > h - bodySize){
+                b.y = 0;
+            } else if (b.y < 0){
+                b.y = h - bodySize;
+            }
+        }
+
+        starX = starX + starVX;
+        starY = starY + starVY;
 
         // Keep this at the end of the function (no matter what you do above):
         repaint();
