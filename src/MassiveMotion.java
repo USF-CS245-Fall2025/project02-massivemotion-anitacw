@@ -14,12 +14,19 @@ public class MassiveMotion extends JPanel implements ActionListener {
     protected int x1, y1;
     protected int x2, y2;
 
+    protected int bodyVelocity;
+    protected int starX, starY, starSize;
+
 
     // public MassiveMotion(String propfile) {
     public MassiveMotion() throws Exception {
         Properties p = new Properties();
         p.load(new FileInputStream("MassiveMotion.txt"));
         int delay = Integer.parseInt(p.getProperty("timer_delay"));
+        bodyVelocity = Integer.parseInt(p.getProperty("body_velocity"));
+        starX = Integer.parseInt(p.getProperty("star_position_x"));
+        starY = Integer.parseInt(p.getProperty("star_position_y"));
+        starSize = Integer.parseInt(p.getProperty("star_size"));
 
         tm = new Timer(delay, this);
 
@@ -38,6 +45,9 @@ public class MassiveMotion extends JPanel implements ActionListener {
         g.setColor(Color.RED);
         g.fillOval(x2, y2, 20, 20);
 
+        g.setColor(Color.YELLOW);
+        g.fillOval(starX- starSize/2, starY - starSize/2, starSize, starSize);
+
         // Recommend you leave the next line as is
         tm.start();
     }
@@ -45,13 +55,13 @@ public class MassiveMotion extends JPanel implements ActionListener {
 
     @Override
     public void actionPerformed(ActionEvent actionEvent) {
-        x1 += 5;
-        x2 -= 9;
+        x1 += bodyVelocity;
+        x2 -= bodyVelocity;
         // These two "if" statements keep the balls on the screen in case they go off one side.
-        if (x1 > 1024)
+        if (x1 > 640)
             x1 = 0;
         if (x2 < 0)
-            x2 = 1024;
+            x2 = 640;
 
         // Keep this at the end of the function (no matter what you do above):
         repaint();
