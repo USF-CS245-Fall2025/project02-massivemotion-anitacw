@@ -16,7 +16,7 @@ public class MassiveMotion extends JPanel implements ActionListener {
 
 
     // public MassiveMotion(String propfile) {
-    public MassiveMotion() {
+    public MassiveMotion() throws Exception {
         Properties p = new Properties();
         p.load(new FileInputStream("MassiveMotion.txt"));
         int delay = Integer.parseInt(p.getProperty("timer_delay"));
@@ -45,28 +45,31 @@ public class MassiveMotion extends JPanel implements ActionListener {
 
     @Override
     public void actionPerformed(ActionEvent actionEvent) {
-        // TODO: Change the location of each ball. Here's an example of them moving across the screen:
-        //       ... but to be clear, you should change this.
-        x1 += 10;
-        x2 -= 15;
+        x1 += 5;
+        x2 -= 9;
         // These two "if" statements keep the balls on the screen in case they go off one side.
-        if (x1 > 640)
+        if (x1 > 1024)
             x1 = 0;
         if (x2 < 0)
-            x2 = 640;
+            x2 = 1024;
 
         // Keep this at the end of the function (no matter what you do above):
         repaint();
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception{
         System.out.println("Massive Motion starting...");
         // MassiveMotion mm = new MassiveMotion(args[0]);
+        Properties p = new Properties();
+        p.load(new FileInputStream("MassiveMotion.txt"));
+        int w = Integer.parseInt(p.getProperty("window_size_x"));
+        int h = Integer.parseInt(p.getProperty("window_size_y"));
+
         MassiveMotion mm = new MassiveMotion();
 
         JFrame jf = new JFrame();
         jf.setTitle("Massive Motion");
-        jf.setSize(640, 480); // TODO: Replace with the size from configuration!
+        jf.setSize(w, h);
         jf.add(mm);
         jf.setVisible(true);
         jf.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
