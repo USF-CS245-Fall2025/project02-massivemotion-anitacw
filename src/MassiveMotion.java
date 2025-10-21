@@ -3,25 +3,36 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.FileInputStream;
-import java.io.FileReader;
 import java.util.Properties;
 
+/**
+ * This is a simple animation graphic that has a yellow star and several black bodies moving
+ * across the screen in different directions.
+ * All settings are read from the file MassiveMotion.txt.
+ * The displays use custom list implementations (ArrayList, LinkedList, DoublyLinkedList, DummyHeadLinkedList)
+ */
 public class MassiveMotion extends JPanel implements ActionListener {
 
+    /** Controls how often the screen updates */
     protected Timer tm;
 
+    /** Body size and movement speed of each body */
     protected int bodyVelocity;
     protected int bodySize;
+
     protected double genX, genY;
 
+    /** Star position, size, and speed */
     protected int starX, starY, starSize;
     protected int starVX, starVY;
 
+    /** Width and height of the window */
     protected int windowWidth, windowHeight;
 
-    protected int tick = 0;
-    protected List<Body> bodies;
+    /** Stores all the moving bodies */
+    protected List<MassiveMotion.Body> bodies;
 
+    /** Represents a single object on screen */
     protected static class Body{
         int x, y, vx, vy;
         Body(int x, int y, int vx, int vy){
@@ -29,6 +40,7 @@ public class MassiveMotion extends JPanel implements ActionListener {
         }
     }
 
+    /** Sets up animation by reading from the text file */
     // public MassiveMotion(String profile) {
     public MassiveMotion() throws Exception {
         Properties p = new Properties();
@@ -47,14 +59,19 @@ public class MassiveMotion extends JPanel implements ActionListener {
         starY = Integer.parseInt(p.getProperty("star_position_y"));
         starSize = Integer.parseInt(p.getProperty("star_size"));
         starVX = (int)Math.round(Double.parseDouble(p.getProperty("star_velocity_x")));
-        starVX = (int)Math.round(Double.parseDouble(p.getProperty("star_velocity_y")));
+        starVY = (int)Math.round(Double.parseDouble(p.getProperty("star_velocity_y")));
 
         windowWidth = Integer.parseInt(p.getProperty("window_size_x"));
         windowHeight = Integer.parseInt(p.getProperty("window_size_y"));
 
-        //String whichList = p.getProperty("list", "arraylist");
+        String listType = p.getProperty("list", "arraylist");
+        if(listType.contains("single")) bodies = new LinkedList<>();
+        else if (listType.contains("double")) bodies = new DoublyLinkedList<>();
+        else if (listType.contains("dummy")) bodies = new DummyHeadLinkedList<>();
+        else bodies = new ArrayList<>();         
     }
 
+    /** Draws the star and the bodies on the screen */
     public void paintComponent(Graphics g) {
         super.paintComponent(g); // Probably best you leave this as is.
 
@@ -66,40 +83,83 @@ public class MassiveMotion extends JPanel implements ActionListener {
             Body b = bodies.get(i);
             g.fillOval(b.x, b.y, bodySize, bodySize);
         }
-
         // Recommend you leave the next line as is
         tm.start();
     }
 
-
+    /** Moves all the bodies with 10 different patterns */
     @Override
     public void actionPerformed(ActionEvent actionEvent) {
-        int w = windowWidth;
-        int h = windowHeight;
+        if(bodies.size() < 10) {
+            int mode = bodies.size() % 10;
 
-        int y; int vy;
+            int x = 0, y = 0, vx = 0, vy = 0;
 
-        if(tick % 2 ==0){
-            y = 0;
-            vy = bodyVelocity;
-        }else{
-            y = h - bodySize;
-            vy = -bodyVelocity;
+            if (mode == 0) { // top → down-right
+                x = (bodies.size() * 20) % windowWidth;
+                y = 0;
+                vx = bodyVelocity;
+                vy = bodyVelocity;
+            } else if (mode == 1) { // bottom → up-left
+                x = (bodies.size() * 25) % windowWidth;
+                y = windowHeight - bodySize;
+                vx = -bodyVelocity;
+                vy = -bodyVelocity;
+            } else if (mode == 2) { // left → right
+                x = 0;
+                y = (bodies.size() * 30) % windowHeight;
+                vx = bodyVelocity;
+                vy = 0;
+            } else if (mode == 3) { // right → left
+                x = windowWidth - bodySize;
+                y = (bodies.size() * 18) % windowHeight;
+                vx = -bodyVelocity;
+                vy = 0;
+            } else if (mode == 4) { // top → down-left
+                x = (bodies.size() * 12) % windowWidth;
+                y = 0;
+                vx = -bodyVelocity;
+                vy = bodyVelocity;
+            } else if (mode == 5) { // bottom → up-right
+                x = (bodies.size() * 15) % windowWidth;
+                y = windowHeight - bodySize;
+                vx = bodyVelocity;
+                vy = -bodyVelocity;
+            } else if (mode == 6) { // left → down-right (faster x)
+                x = 0;
+                y = (bodies.size() * 10) % windowHeight;
+                vx = 2 * bodyVelocity;
+                vy = bodyVelocity;
+            } else if (mode == 7) { // right → up-left (faster y)
+                x = windowWidth - bodySize;
+                y = (bodies.size() * 22) % windowHeight;
+                vx = -bodyVelocity;
+                vy = -2 * bodyVelocity;
+            } else if (mode == 8) { // top → straight down (slow)
+                x = (bodies.size() * 14) % windowWidth;
+                y = 0;
+                vx = 0;
+                vy = bodyVelocity / 2;
+            } else { // bottom → straight up (slow)
+                x = (bodies.size() * 19) % windowWidth;
+                y = windowHeight - bodySize;
+                vx = 0;
+                vy = -bodyVelocity / 2;
+            }
+
+            bodies.add(new MassiveMotion.Body(x, y, vx, vy));
         }
 
-        int x = (bodies.size() * 20) % (w -bodySize);
-        bodies.add(new Body(x, y, 0, vy));
-        tick++;
-
         for (int i = 0; i < bodies.size(); i++){
-            Body b = bodies.get(i);
-            b.y = b.y + b.vy;
+            MassiveMotion.Body b = bodies.get(i);
+            b.x += b.vx;
+            b.y += b.vy;
 
-            if (b.y > h - bodySize){
-                b.y = 0;
-            } else if (b.y < 0){
-                b.y = h - bodySize;
-            }
+            if (b.x > windowWidth - bodySize) b.x = 0;
+            else if (b.x < 0) b.x = windowWidth - bodySize;
+            if (b.y > windowHeight - bodySize) b.y = 0;
+            else if (b.y < 0) b.y = windowHeight - bodySize;
+
         }
 
         starX = starX + starVX;
@@ -109,6 +169,7 @@ public class MassiveMotion extends JPanel implements ActionListener {
         repaint();
     }
 
+    /** Starts the animaation */
     public static void main(String[] args) throws Exception{
         System.out.println("Massive Motion starting...");
         // MassiveMotion mm = new MassiveMotion(args[0]);
